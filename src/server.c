@@ -989,6 +989,7 @@ server_init(struct server *server)
 	wl_list_init(&server->views);
 	wl_list_init(&server->unmanaged_surfaces);
 	wl_list_init(&server->cycle.views);
+	wl_list_init(&server->cycle.osd_outputs);
 
 	server->scene = wlr_scene_create();
 	if (!server->scene) {
@@ -1026,6 +1027,7 @@ server_init(struct server *server)
 #if HAVE_XWAYLAND
 	server->unmanaged_tree = wlr_scene_tree_create(&server->scene->tree);
 #endif
+	server->cycle_preview_tree = wlr_scene_tree_create(&server->scene->tree);
 	server->menu_tree = wlr_scene_tree_create(&server->scene->tree);
 
 	workspaces_init(server);

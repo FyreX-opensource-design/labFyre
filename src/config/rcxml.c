@@ -341,7 +341,7 @@ static void
 clear_window_switcher_fields(void)
 {
 	struct cycle_osd_field *field, *field_tmp;
-	wl_list_for_each_safe(field, field_tmp, &rc.window_switcher.fields, link) {
+	wl_list_for_each_safe(field, field_tmp, &rc.window_switcher.osd.fields, link) {
 		wl_list_remove(&field->link);
 		cycle_osd_field_free(field);
 	}
@@ -351,7 +351,7 @@ static void
 fill_window_switcher_field(xmlNode *node)
 {
 	struct cycle_osd_field *field = znew(*field);
-	wl_list_append(&rc.window_switcher.fields, &field->link);
+	wl_list_append(&rc.window_switcher.osd.fields, &field->link);
 
 	xmlNode *child;
 	char *key, *content;
@@ -1257,7 +1257,7 @@ entry(xmlNode *node, char *nodename, char *content)
 	} else if (!strcasecmp(nodename, "prefix.desktops")) {
 		xstrdup_replace(rc.workspace_config.prefix, content);
 	} else if (!strcasecmp(nodename, "thumbnailLabelFormat.osd.windowSwitcher")) {
-		xstrdup_replace(rc.window_switcher.thumbnail_label_format, content);
+		xstrdup_replace(rc.window_switcher.osd.thumbnail_label_format, content);
 
 	} else if (!lab_xml_node_is_leaf(node)) {
 		/* parse children of nested nodes other than above */
@@ -1405,23 +1405,23 @@ entry(xmlNode *node, char *nodename, char *content)
 	 * thumnailLabelFormat is handled above to allow for an empty value
 	 */
 	} else if (!strcasecmp(nodename, "show.osd.windowSwitcher")) {
-		set_bool(content, &rc.window_switcher.show);
+		set_bool(content, &rc.window_switcher.osd.show);
 	} else if (!strcasecmp(nodename, "style.osd.windowSwitcher")) {
 		if (!strcasecmp(content, "classic")) {
-			rc.window_switcher.style = CYCLE_OSD_STYLE_CLASSIC;
+			rc.window_switcher.osd.style = CYCLE_OSD_STYLE_CLASSIC;
 		} else if (!strcasecmp(content, "thumbnail")) {
-			rc.window_switcher.style = CYCLE_OSD_STYLE_THUMBNAIL;
+			rc.window_switcher.osd.style = CYCLE_OSD_STYLE_THUMBNAIL;
 		} else {
 			wlr_log(WLR_ERROR, "Invalid windowSwitcher style '%s': "
 				"should be one of classic|thumbnail", content);
 		}
 	} else if (!strcasecmp(nodename, "output.osd.windowSwitcher")) {
 		if (!strcasecmp(content, "all")) {
-			rc.window_switcher.output_criteria = CYCLE_OSD_OUTPUT_ALL;
+			rc.window_switcher.osd.output_filter = CYCLE_OUTPUT_ALL;
 		} else if (!strcasecmp(content, "cursor")) {
-			rc.window_switcher.output_criteria = CYCLE_OSD_OUTPUT_CURSOR;
+			rc.window_switcher.osd.output_filter = CYCLE_OUTPUT_CURSOR;
 		} else if (!strcasecmp(content, "focused")) {
-			rc.window_switcher.output_criteria = CYCLE_OSD_OUTPUT_FOCUSED;
+			rc.window_switcher.osd.output_filter = CYCLE_OUTPUT_FOCUSED;
 		} else {
 			wlr_log(WLR_ERROR, "Invalid windowSwitcher output '%s': "
 				"should be one of all|focused|cursor", content);
@@ -1438,14 +1438,14 @@ entry(xmlNode *node, char *nodename, char *content)
 
 	/* The following two are for backward compatibility only. */
 	} else if (!strcasecmp(nodename, "show.windowSwitcher")) {
-		set_bool(content, &rc.window_switcher.show);
+		set_bool(content, &rc.window_switcher.osd.show);
 		wlr_log(WLR_ERROR, "<windowSwitcher show=\"\" /> is deprecated."
 			" Use <windowSwitcher><osd show=\"\" />");
 	} else if (!strcasecmp(nodename, "style.windowSwitcher")) {
 		if (!strcasecmp(content, "classic")) {
-			rc.window_switcher.style = CYCLE_OSD_STYLE_CLASSIC;
+			rc.window_switcher.osd.style = CYCLE_OSD_STYLE_CLASSIC;
 		} else if (!strcasecmp(content, "thumbnail")) {
-			rc.window_switcher.style = CYCLE_OSD_STYLE_THUMBNAIL;
+			rc.window_switcher.osd.style = CYCLE_OSD_STYLE_THUMBNAIL;
 		}
 		wlr_log(WLR_ERROR, "<windowSwitcher style=\"\" /> is deprecated."
 			" Use <windowSwitcher><osd style=\"\" />");
@@ -1455,10 +1455,16 @@ entry(xmlNode *node, char *nodename, char *content)
 	} else if (!strcasecmp(nodename, "outlines.windowSwitcher")) {
 		set_bool(content, &rc.window_switcher.outlines);
 	} else if (!strcasecmp(nodename, "allWorkspaces.windowSwitcher")) {
-		if (parse_bool(content, -1) == true) {
-			rc.window_switcher.criteria &=
-				~LAB_VIEW_CRITERIA_CURRENT_WORKSPACE;
+		int ret = parse_bool(content, -1);
+		if (ret < 0) {
+			wlr_log(WLR_ERROR, "Invalid value for <windowSwitcher"
+				" allWorkspaces=\"\">: '%s'", content);
+		} else {
+			rc.window_switcher.workspace_filter = ret ?
+				CYCLE_WORKSPACE_ALL : CYCLE_WORKSPACE_CURRENT;
 		}
+		wlr_log(WLR_ERROR, "<windowSwitcher allWorkspaces=\"\" /> is deprecated."
+			" Use <action name=\"NextWindow\" workspace=\"\"> instead.");
 	} else if (!strcasecmp(nodename, "unshade.windowSwitcher")) {
 		set_bool(content, &rc.window_switcher.unshade);
 
@@ -1468,7 +1474,7 @@ entry(xmlNode *node, char *nodename, char *content)
 
 	/* The following three are for backward compatibility only */
 	} else if (!strcasecmp(nodename, "show.windowSwitcher.core")) {
-		set_bool(content, &rc.window_switcher.show);
+		set_bool(content, &rc.window_switcher.osd.show);
 	} else if (!strcasecmp(nodename, "preview.windowSwitcher.core")) {
 		set_bool(content, &rc.window_switcher.preview);
 	} else if (!strcasecmp(nodename, "outlines.windowSwitcher.core")) {
@@ -1476,7 +1482,7 @@ entry(xmlNode *node, char *nodename, char *content)
 
 	/* The following three are for backward compatibility only */
 	} else if (!strcasecmp(nodename, "cycleViewOSD.core")) {
-		set_bool(content, &rc.window_switcher.show);
+		set_bool(content, &rc.window_switcher.osd.show);
 		wlr_log(WLR_ERROR, "<cycleViewOSD> is deprecated."
 			" Use <windowSwitcher show=\"\" />");
 	} else if (!strcasecmp(nodename, "cycleViewPreview.core")) {
@@ -1614,7 +1620,7 @@ rcxml_init(void)
 		wl_list_init(&rc.libinput_categories);
 		wl_list_init(&rc.workspace_config.workspaces);
 		wl_list_init(&rc.regions);
-		wl_list_init(&rc.window_switcher.fields);
+		wl_list_init(&rc.window_switcher.osd.fields);
 		wl_list_init(&rc.window_rules);
 		wl_list_init(&rc.touch_configs);
 		wl_list_init(&rc.keyboard_blacklist_devices);
@@ -1680,16 +1686,17 @@ rcxml_init(void)
 	rc.snap_top_maximize = true;
 	rc.snap_tiling_events_mode = LAB_TILING_EVENTS_ALWAYS;
 
-	rc.window_switcher.show = true;
-	rc.window_switcher.style = CYCLE_OSD_STYLE_CLASSIC;
-	rc.window_switcher.output_criteria = CYCLE_OSD_OUTPUT_ALL;
-	rc.window_switcher.thumbnail_label_format = xstrdup("%T");
+	rc.window_switcher.osd.show = true;
+	rc.window_switcher.osd.style = CYCLE_OSD_STYLE_CLASSIC;
+	rc.window_switcher.osd.output_filter = CYCLE_OUTPUT_ALL;
+	rc.window_switcher.osd.thumbnail_label_format = xstrdup("%T");
 	rc.window_switcher.preview = true;
 	rc.window_switcher.outlines = true;
 	rc.window_switcher.unshade = true;
 	rc.window_switcher.criteria = LAB_VIEW_CRITERIA_CURRENT_WORKSPACE
 		| LAB_VIEW_CRITERIA_ROOT_TOPLEVEL
 		| LAB_VIEW_CRITERIA_NO_SKIP_WINDOW_SWITCHER;
+	rc.window_switcher.workspace_filter = CYCLE_WORKSPACE_CURRENT;
 	rc.window_switcher.order = WINDOW_SWITCHER_ORDER_FOCUS;
 
 	rc.resize_indicator = LAB_RESIZE_INDICATOR_NEVER;
@@ -1869,7 +1876,7 @@ load_default_window_switcher_fields(void)
 		struct cycle_osd_field *field = znew(*field);
 		field->content = fields[i].content;
 		field->width = fields[i].width;
-		wl_list_append(&rc.window_switcher.fields, &field->link);
+		wl_list_append(&rc.window_switcher.osd.fields, &field->link);
 	}
 }
 
@@ -1990,7 +1997,7 @@ post_processing(void)
 	if (rc.workspace_config.popuptime == INT_MIN) {
 		rc.workspace_config.popuptime = 1000;
 	}
-	if (!wl_list_length(&rc.window_switcher.fields)) {
+	if (!wl_list_length(&rc.window_switcher.osd.fields)) {
 		wlr_log(WLR_INFO, "load default window switcher fields");
 		load_default_window_switcher_fields();
 	}
@@ -2084,7 +2091,7 @@ validate(void)
 	/* OSD fields */
 	int field_width_sum = 0;
 	struct cycle_osd_field *field, *field_tmp;
-	wl_list_for_each_safe(field, field_tmp, &rc.window_switcher.fields, link) {
+	wl_list_for_each_safe(field, field_tmp, &rc.window_switcher.osd.fields, link) {
 		field_width_sum += field->width;
 		if (!cycle_osd_field_is_valid(field) || field_width_sum > 100) {
 			wlr_log(WLR_ERROR, "Deleting invalid window switcher field %p", field);
@@ -2160,7 +2167,7 @@ rcxml_finish(void)
 	zfree(rc.fallback_app_icon_name);
 	zfree(rc.workspace_config.prefix);
 	zfree(rc.tablet.output_name);
-	zfree(rc.window_switcher.thumbnail_label_format);
+	zfree(rc.window_switcher.osd.thumbnail_label_format);
 
 	clear_title_layout();
 

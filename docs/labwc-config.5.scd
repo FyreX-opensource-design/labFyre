@@ -410,9 +410,10 @@ this is for compatibility with Openbox.
 	*outlines* [yes|no] Draw an outline around the selected window when
 	switching between windows. Default is yes.
 
-	*allWorkspaces* [yes|no] Show windows regardless of what workspace
+	*allWorkspaces* [yes|no] (DEPRECATED) Show windows regardless of what workspace
 	they are on. Default no (that is only windows on the current workspace
-	are shown).
+	are shown). This option is deprecated. Use *<action name="NextWindow"
+	workspace="all">* instead. See labwc-actions(5) for details.
 
 	*unshade* [yes|no] Temporarily unshade windows when switching between
 	them and permanently unshade on the final selection. Default is yes.
@@ -428,14 +429,19 @@ this is for compatibility with Openbox.
 
 	*style* [classic|thumbnail] Configures the style of the OSD.
 	"classic" displays window information like icons and titles in a
-	vertical list.
-	"thumbnail" shows window thumbnail, icon and title in grids.
+	vertical list with automatic scrolling when there are many windows.
+	"thumbnail" shows window thumbnail, icon and title in grids with
+	automatic scrolling when there are many windows.
 
 	*output* [all|focused|cursor] Configures which monitor(s) show the OSD.
 	"all" displays the OSD on all monitors.
 	"focused" displays the OSD on the monitor with keyboard focus.
 	"cursor" displays the OSD on the monitor containing the mouse pointer.
 	Default is "all".
+
+	Note: The OSD automatically becomes scrollable when there are more windows
+	than can fit on screen, making it particularly useful when using tiling
+	mode with many windows.
 
 	*thumbnailLabelFormat* Format to be used for the thumbnail label
 	according to *custom* field below, only applied when using

@@ -1,0 +1,193 @@
+<?xml version="1.0"?>
+<labwc_config>
+  <keyboard>
+    <!-- Screenshot -->
+    <keybind key="Print">
+      <action name="Execute">
+        <command>/opt/system/lib/take-picture.sh</command>
+      </action>
+    </keybind>
+    
+<keybind key="Control_L" onRelease="yes" toggleable="yes" id="sticky_1" enabled="yes" conditionCommand="echo $STICKY_KEYS" conditionValues="true">
+        <action name="Execute">
+          <command>/opt/system/lib/sticky-keys.sh ctrl release</command>
+        </action>
+      </keybind>
+      <keybind key="Control_R" onRelease="yes" toggleable="yes" id="sticky_2" enabled="yes" conditionCommand="echo $STICKY_KEYS" conditionValues="true">
+        <action name="Execute">
+          <command>/opt/system/lib/sticky-keys.sh ctrl release</command>
+        </action>
+      </keybind>
+      <keybind key="Alt_L" onRelease="yes" toggleable="yes" id="sticky_3" enabled="yes" conditionCommand="echo $STICKY_KEYS" conditionValues="true">
+        <action name="Execute">
+          <command>/opt/system/lib/sticky-keys.sh alt release</command>
+        </action>
+      </keybind>
+      <keybind key="Alt_R" onRelease="yes" toggleable="yes" id="sticky_4" enabled="yes" conditionCommand="echo $STICKY_KEYS" conditionValues="true">
+        <action name="Execute">
+          <command>/opt/system/lib/sticky-keys.sh alt release</command>
+        </action>
+      </keybind>
+      <keybind key="Shift_L" onRelease="yes" toggleable="yes" id="sticky_5" enabled="yes" conditionCommand="echo $STICKY_KEYS" conditionValues="true">
+        <action name="Execute">
+          <command>/opt/system/lib/sticky-keys.sh shift release</command>
+        </action>
+      </keybind>
+      <keybind key="Shift_R" onRelease="yes" toggleable="yes" id="sticky_6" enabled="yes" conditionCommand="echo $STICKY_KEYS" conditionValues="true">
+        <action name="Execute">
+          <command>/opt/system/lib/sticky-keys.sh shift release</command>
+        </action>
+      </keybind>
+      <keybind key="Super_L" onRelease="yes" toggleable="yes" id="sticky_7" enabled="yes" conditionCommand="echo $STICKY_KEYS" conditionValues="true">
+        <action name="Execute">
+          <command>/opt/system/lib/sticky-keys.sh super release</command>
+        </action>
+      </keybind>
+      <keybind key="Super_R" onRelease="yes" toggleable="yes" id="sticky_8" enabled="yes" conditionCommand="echo $STICKY_KEYS" conditionValues="true">
+        <action name="Execute">
+          <command>/opt/system/lib/sticky-keys.sh super release</command>
+        </action>
+      </keybind>
+
+<keybind key="7" deviceWhitelist="SayoDevice SayoDevice 1x7 RGB,wayland-keyboard-seat0">
+  <action name="Execute">
+    <command>notify-send test</command>
+  </action>
+</keybind>
+
+    <!-- Media controls -->
+    <keybind key="XF86AudioPlay">
+      <action name="Execute">
+        <command>playerctl play-pause</command>
+      </action>
+    </keybind>
+    <keybind key="XF86AudioNext">
+      <action name="Execute">
+        <command>playerctl next</command>
+      </action>
+    </keybind>
+    <keybind key="XF86AudioPrev">
+      <action name="Execute">
+        <command>playerctl previous</command>
+      </action>
+    </keybind>
+    <keybind key="XF86AudioStop">
+      <action name="Execute">
+        <command>playerctl stop</command>
+      </action>
+    </keybind>
+
+    <!-- Volume controls -->
+    <keybind key="XF86AudioRaiseVolume">
+      <action name="Execute">
+        <command>wpctl set-volume @DEFAULT_AUDIO_SINK@ 5%+</command>
+      </action>
+    </keybind>
+    <keybind key="XF86AudioLowerVolume">
+      <action name="Execute">
+        <command>wpctl set-volume @DEFAULT_AUDIO_SINK@ 5%-</command>
+      </action>
+    </keybind>
+    <keybind key="XF86AudioMute">
+      <action name="Execute">
+        <command>wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle</command>
+      </action>
+    </keybind>
+
+    <!-- Brightness controls -->
+    <keybind key="XF86MonBrightnessUp">
+      <action name="Execute">
+        <command>brightnessctl set +5%</command>
+      </action>
+    </keybind>
+    <keybind key="XF86MonBrightnessDown">
+      <action name="Execute">
+        <command>brightnessctl set 5%-</command>
+      </action>
+    </keybind>
+    
+    <!-- Workspace switching keybinds -->
+    <keybind key="W-1">
+      <action name="GoToDesktop">
+        <to>1</to>
+      </action>
+    </keybind>
+    <keybind key="W-2">
+      <action name="GoToDesktop">
+        <to>2</to>
+      </action>
+    </keybind>
+    <keybind key="W-3">
+      <action name="GoToDesktop">
+        <to>3</to>
+      </action>
+    </keybind>
+    <keybind key="W-4">
+      <action name="GoToDesktop">
+        <to>4</to>
+      </action>
+    </keybind>
+    <keybind key="W-5">
+      <action name="GoToDesktop">
+        <to>5</to>
+      </action>
+    </keybind>
+    <!-- Move window to workspace and switch -->
+    <keybind key="W-S-1">
+      <action name="SendToDesktop">
+        <to>1</to>
+        <follow>yes</follow>
+      </action>
+    </keybind>
+    <keybind key="W-S-2">
+      <action name="SendToDesktop">
+        <to>2</to>
+        <follow>yes</follow>
+      </action>
+    </keybind>
+    <keybind key="W-S-3">
+      <action name="SendToDesktop">
+        <to>3</to>
+        <follow>yes</follow>
+      </action>
+    </keybind>
+    <keybind key="W-S-4">
+      <action name="SendToDesktop">
+        <to>4</to>
+        <follow>yes</follow>
+      </action>
+    </keybind>
+    <keybind key="W-S-5">
+      <action name="SendToDesktop">
+        <to>5</to>
+        <follow>yes</follow>
+      </action>
+    </keybind>
+  </keyboard>
+
+<touch>
+    <deviceName>Weida Hi-Tech CoolTouch® System</deviceName>
+    <mapToOutput>DP-1</mapToOutput>
+    <mouseEmulation>no</mouseEmulation>
+</touch>
+<tablet>
+  <deviceName>*Hi-Tech*</deviceName>
+  <mapToOutput>DP-1</mapToOutput>
+  <rotate>0</rotate>
+  <mouseEmulation>no</mouseEmulation>
+</tablet>
+
+<windowRules>
+  <!-- Prefer vertical tiling (stretch vertically when there are gaps) -->
+  
+  <!-- Prefer horizontal tiling (stretch horizontally when there are gaps) -->
+  <windowRule identifier="nemo" tileDirection="horizontal" shader="grayscale" shaderIntensity="1.0"/>
+  
+  <!-- Auto (use aspect ratio to decide) -->
+  <windowRule identifier="cursor" tileDirection="auto"/>
+</windowRules>
+
+  <desktops>
+    <number>5</number>
+  </desktops>
+</labwc_config>

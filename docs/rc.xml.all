@@ -266,6 +266,23 @@
     <keybind key="A-S-Tab">
       <action name="PreviousWindow" />
     </keybind>
+    <!--
+      New filter options for window switching (introduced with scrollable OSD):
+      - workspace="all|current" - Filter by workspace
+      - output="all|focused|cursor" - Filter by output/monitor
+      - identifier="all|current" - Filter by application (same app_id)
+      
+      Examples:
+      <keybind key="A-W-Tab">
+        <action name="NextWindow" workspace="all" />
+      </keybind>
+      <keybind key="A-O-Tab">
+        <action name="NextWindow" output="focused" />
+      </keybind>
+      <keybind key="A-I-Tab">
+        <action name="NextWindow" identifier="current" />
+      </keybind>
+    -->
     <keybind key="W-Return">
       <action name="Execute" command="lab-sensible-terminal" />
     </keybind>
