@@ -81,8 +81,17 @@ lab_wlr_scene_output_commit(struct wlr_scene_output *scene_output,
 	 * damages to next frame when magnifier is shown, which forces
 	 * rendering on every output commit and overloads CPU.
 	 * We also need to verify the necessity of wants_magnification.
+	 *
+	 * Always commit frames when wlr_scene_output_needs_frame returns true,
+	 * as this includes pending screencopy frames. This prevents resource
+	 * leaks from accumulating screencopy frames over time.
+	 *
+	 * If we skip the commit, ensure frames are still scheduled to catch
+	 * any screencopy frames that might be pending, preventing accumulation.
 	 */
 	if (!wlr_scene_output_needs_frame(scene_output) && !wants_magnification) {
+		/* Schedule a frame to catch any pending screencopy frames */
+		wlr_output_schedule_frame(wlr_output);
 		return true;
 	}
 

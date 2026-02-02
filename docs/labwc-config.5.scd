@@ -422,7 +422,7 @@ this is for compatibility with Openbox.
 	cycles by recent focus history, starting with the previously focused
 	window. *age* cycles by creation/open order, a stable taskbar-style
 	ordering that doesn’t change on focus. Default is *focus*.
-
+	
 *<windowSwitcher><osd show="" style="" output="" thumbnailLabelFormat="" />*
 	*show* [yes|no] Draw the OnScreenDisplay when switching between
 	windows. Default is yes.

@@ -154,6 +154,11 @@ handle_output_frame(struct wl_listener *listener, void *data)
 
 		pending->tearing_page_flip = output_get_tearing_allowance(output);
 
+		/*
+		 * Always commit frames when wlr_scene_output_needs_frame returns true,
+		 * as this includes pending screencopy frames. This prevents resource
+		 * leaks from accumulating screencopy frames over time.
+		 */
 		lab_wlr_scene_output_commit(scene_output, pending);
 	}
 
