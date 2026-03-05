@@ -440,6 +440,8 @@ handle_sigusr1(int signal, void *data)
 				} else if (!strcmp(command, "recalculate")) {
 					if (server->tiling_mode) {
 						wlr_log(WLR_INFO, "Recalculating tiling layout");
+						/* Clear resized view to force full recalculation */
+						server->resized_view = NULL;
 						desktop_arrange_tiled(server);
 					} else {
 						wlr_log(WLR_INFO, "Tiling mode is disabled, cannot recalculate");
@@ -474,6 +476,8 @@ handle_sigusr1(int signal, void *data)
 				} else if (!strcmp(command, "recalculate")) {
 					if (server->tiling_mode) {
 						wlr_log(WLR_INFO, "Recalculating tiling layout");
+						/* Clear resized view to force full recalculation */
+						server->resized_view = NULL;
 						desktop_arrange_tiled(server);
 					} else {
 						wlr_log(WLR_INFO, "Tiling mode is disabled, cannot recalculate");

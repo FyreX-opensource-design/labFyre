@@ -57,6 +57,11 @@ struct usable_area_override {
 	struct wl_list link; /* struct rcxml.usable_area_overrides */
 };
 
+struct output_10bit_color {
+	char *output;
+	struct wl_list link; /* struct rcxml.output_10bit_colors */
+};
+
 struct rcxml {
 	/* from command line */
 	char *config_dir;
@@ -71,6 +76,7 @@ struct rcxml {
 	enum tearing_mode allow_tearing;
 	bool auto_enable_outputs;
 	bool reuse_output_mode;
+	bool enable_10bit_color; /* deprecated: use output10bitColor instead */
 	bool xwayland_persistence;
 	bool primary_selection;
 	char *prompt_command;
@@ -112,6 +118,9 @@ struct rcxml {
 
 	/* <margin top="" bottom="" left="" right="" output="" /> */
 	struct wl_list usable_area_overrides;
+
+	/* <output10bitColor output="" /> */
+	struct wl_list output_10bit_colors;
 
 	/* keyboard */
 	int repeat_rate;

@@ -229,6 +229,25 @@ fill_usable_area_override(xmlNode *node)
 	}
 }
 
+static void
+fill_output_10bit_color(xmlNode *node)
+{
+	struct output_10bit_color *output_10bit_color =
+		znew(*output_10bit_color);
+	wl_list_append(&rc.output_10bit_colors, &output_10bit_color->link);
+
+	xmlNode *child;
+	char *key, *content;
+	LAB_XML_FOR_EACH(node, child, key, content) {
+		if (!strcmp(key, "output")) {
+			xstrdup_replace(output_10bit_color->output, content);
+		} else {
+			wlr_log(WLR_ERROR, "Unexpected data output10bitColor "
+				"parser: %s=\"%s\"", key, content);
+		}
+	}
+}
+
 /* Does a boolean-parse but also allows 'default' */
 static void
 set_property(const char *str, enum property *variable)
@@ -1228,6 +1247,8 @@ entry(xmlNode *node, char *nodename, char *content)
 	/* handle nested nodes */
 	if (!strcasecmp(nodename, "margin")) {
 		fill_usable_area_override(node);
+	} else if (!strcasecmp(nodename, "output10bitColor")) {
+		fill_output_10bit_color(node);
 	} else if (!strcasecmp(nodename, "keybind.keyboard")) {
 		fill_keybind(node);
 	} else if (!strcasecmp(nodename, "context.mouse")) {
@@ -1282,6 +1303,8 @@ entry(xmlNode *node, char *nodename, char *content)
 		set_tearing_mode(content, &rc.allow_tearing);
 	} else if (!strcasecmp(nodename, "autoEnableOutputs.core")) {
 		set_bool(content, &rc.auto_enable_outputs);
+	} else if (!strcasecmp(nodename, "enable10bitColor.core")) {
+		set_bool(content, &rc.enable_10bit_color);
 	} else if (!strcasecmp(nodename, "reuseOutputMode.core")) {
 		set_bool(content, &rc.reuse_output_mode);
 	} else if (!strcasecmp(nodename, "xwaylandPersistence.core")) {
@@ -1645,8 +1668,12 @@ rcxml_init(void)
 	rc.allow_tearing = LAB_TEARING_DISABLED;
 	rc.auto_enable_outputs = true;
 	rc.reuse_output_mode = false;
+	rc.enable_10bit_color = false;
 	rc.xwayland_persistence = false;
 	rc.primary_selection = true;
+	rc.enable_10bit_color = false;
+
+	wl_list_init(&rc.output_10bit_colors);
 
 	init_font_defaults(&rc.font_activewindow);
 	init_font_defaults(&rc.font_inactivewindow);
@@ -2176,6 +2203,13 @@ rcxml_finish(void)
 		wl_list_remove(&area->link);
 		zfree(area->output);
 		zfree(area);
+	}
+
+	struct output_10bit_color *output_10bit, *output_10bit_tmp;
+	wl_list_for_each_safe(output_10bit, output_10bit_tmp, &rc.output_10bit_colors, link) {
+		wl_list_remove(&output_10bit->link);
+		zfree(output_10bit->output);
+		zfree(output_10bit);
 	}
 
 	struct keybind *k, *k_tmp;

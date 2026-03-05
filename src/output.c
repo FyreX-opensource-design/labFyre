@@ -10,6 +10,7 @@
 #include "output.h"
 #include <assert.h>
 #include <strings.h>
+#include <drm_fourcc.h>
 #include <wlr/backend/drm.h>
 #include <wlr/backend/wayland.h>
 #include <wlr/types/wlr_cursor.h>
@@ -25,6 +26,7 @@
 #include "common/macros.h"
 #include "common/mem.h"
 #include "common/scene-helpers.h"
+#include "common/string-helpers.h"
 #include "config/rcxml.h"
 #include "labwc.h"
 #include "layers.h"
@@ -301,6 +303,119 @@ add_output_to_layout(struct server *server, struct output *output)
 }
 
 static bool
+output_supports_10bit_color(struct server *server, struct wlr_output *wlr_output)
+{
+	/*
+	 * Check if both the renderer and output support 10-bit color formats.
+	 * We check for both XRGB2101010 and XBGR2101010 formats.
+	 */
+	const uint32_t formats_10bit[] = {
+		DRM_FORMAT_XRGB2101010,
+		DRM_FORMAT_XBGR2101010,
+	};
+
+	/* Get texture formats supported by the renderer */
+	const struct wlr_drm_format_set *render_formats =
+		wlr_renderer_get_texture_formats(server->renderer,
+			WLR_BUFFER_CAP_DMABUF);
+	if (!render_formats) {
+		return false;
+	}
+
+	/* Check if renderer supports any 10-bit format */
+	bool renderer_supports_10bit = false;
+	for (size_t i = 0; i < render_formats->len; i++) {
+		for (size_t j = 0; j < ARRAY_SIZE(formats_10bit); j++) {
+			if (render_formats->formats[i].format == formats_10bit[j]) {
+				renderer_supports_10bit = true;
+				break;
+			}
+		}
+		if (renderer_supports_10bit) {
+			break;
+		}
+	}
+
+	if (!renderer_supports_10bit) {
+		return false;
+	}
+
+	/* Check if output supports any 10-bit format */
+	const struct wlr_drm_format_set *output_formats =
+		wlr_output_get_primary_formats(wlr_output,
+			WLR_BUFFER_CAP_DMABUF);
+	if (!output_formats) {
+		return false;
+	}
+
+	for (size_t i = 0; i < output_formats->len; i++) {
+		for (size_t j = 0; j < ARRAY_SIZE(formats_10bit); j++) {
+			if (output_formats->formats[i].format == formats_10bit[j]) {
+				return true;
+			}
+		}
+	}
+
+	return false;
+}
+
+static void
+output_enable_10bit_color(struct server *server, struct output *output)
+{
+	struct wlr_output *wlr_output = output->wlr_output;
+
+	if (!output_supports_10bit_color(server, wlr_output)) {
+		return;
+	}
+
+	/*
+	 * Try XRGB2101010 first, then XBGR2101010 as fallback.
+	 * Prefer XRGB2101010 as it's more commonly supported.
+	 */
+	const uint32_t formats_10bit[] = {
+		DRM_FORMAT_XRGB2101010,
+		DRM_FORMAT_XBGR2101010,
+	};
+
+	const struct wlr_drm_format_set *output_formats =
+		wlr_output_get_primary_formats(wlr_output,
+			WLR_BUFFER_CAP_DMABUF);
+	if (!output_formats) {
+		return;
+	}
+
+	uint32_t chosen_format = 0;
+	for (size_t i = 0; i < ARRAY_SIZE(formats_10bit); i++) {
+		for (size_t j = 0; j < output_formats->len; j++) {
+			if (output_formats->formats[j].format == formats_10bit[i]) {
+				chosen_format = formats_10bit[i];
+				break;
+			}
+		}
+		if (chosen_format) {
+			break;
+		}
+	}
+
+	if (!chosen_format) {
+		return;
+	}
+
+	/* Test if the format can be set */
+	wlr_output_state_set_render_format(&output->pending, chosen_format);
+	if (!wlr_output_test_state(wlr_output, &output->pending)) {
+		/* Format not supported, revert */
+		wlr_output_state_set_render_format(&output->pending, 0);
+		wlr_log(WLR_DEBUG, "10-bit color format test failed for output %s",
+			wlr_output->name);
+		return;
+	}
+
+	wlr_log(WLR_INFO, "10-bit color enabled for output %s (format: 0x%08x)",
+		wlr_output->name, chosen_format);
+}
+
+static bool
 output_test_auto(struct wlr_output *wlr_output, struct wlr_output_state *state,
 		bool is_client_request)
 {
@@ -402,6 +517,27 @@ configure_new_output(struct server *server, struct output *output)
 
 	if (rc.adaptive_sync == LAB_ADAPTIVE_SYNC_ENABLED) {
 		output_enable_adaptive_sync(output, true);
+	}
+
+	/* Enable 10-bit color if configured and supported by the monitor */
+	bool enable_10bit = false;
+	if (rc.enable_10bit_color) {
+		/* Global setting (deprecated) - enable for all outputs */
+		enable_10bit = true;
+	} else {
+		/* Check per-output settings */
+		struct output_10bit_color *entry;
+		wl_list_for_each(entry, &rc.output_10bit_colors, link) {
+			/* If output is not specified or matches this output, enable 10-bit */
+			if (string_null_or_empty(entry->output) ||
+			    !strcasecmp(entry->output, wlr_output->name)) {
+				enable_10bit = true;
+				break;
+			}
+		}
+	}
+	if (enable_10bit) {
+		output_enable_10bit_color(server, output);
 	}
 
 	output_state_commit(output);

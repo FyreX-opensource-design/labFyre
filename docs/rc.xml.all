@@ -223,6 +223,16 @@
     <margin top="10" bottom="10" left="10" right="10" output="HDMI-A-1" />
   -->
 
+  <!-- Enable 10-bit color for specific outputs -->
+  <!--
+    Enable 10-bit color depth for monitors that support it. This can be
+    specified multiple times for different outputs. If 'output' is omitted
+    or empty, 10-bit color will be enabled for all outputs that support it.
+
+    <output10bitColor output="DP-1" />
+    <output10bitColor output="HDMI-A-1" />
+  -->
+
   <!-- Percent based regions based on output usable area, % char is required -->
   <!--
     <regions>

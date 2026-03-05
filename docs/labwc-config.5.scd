@@ -301,6 +301,28 @@ this is for compatibility with Openbox.
 	be used with labwc the preferred mode of the monitor is used instead.
 	Default is no.
 
+*<core><output10bitColor output="" />*
+	Enable 10-bit color depth for specific outputs. This option can be
+	specified multiple times to enable 10-bit color for different monitors.
+
+	If the *output* attribute is omitted or empty, 10-bit color will be
+	enabled for all outputs that support it. If *output* is specified, only
+	that output will use 10-bit color (if supported).
+
+	10-bit color will only be enabled if both the renderer and the monitor
+	support it. If a monitor does not support 10-bit color, it will
+	automatically fall back to 8-bit color.
+
+	Example:
+	```
+	<output10bitColor output="DP-1" />
+	<output10bitColor output="HDMI-A-1" />
+	```
+
+	Note: The deprecated global option *<core><enable10bitColor>* [yes|no]
+	can still be used to enable 10-bit color for all outputs, but
+	per-output configuration is recommended.
+
 *<core><xwaylandPersistence>* [yes|no]
 	Keep XWayland alive even when no clients are connected, rather than
 	using a "lazy" policy that allows the server to launch on demand and die
